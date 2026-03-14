@@ -1,0 +1,46 @@
+# ==========================================
+# 1. Python Artifacts
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.python-version
+
+# ==========================================
+# 2. Virtual Environments
+# ==========================================
+venv/
+.venv/
+env/
+ENV/
+
+# ==========================================
+# 3. Assembler Output (Machine Code)
+# ==========================================
+*.bin
+*.hex
+*.obj
+*.elf
+*.o
+*.out
+
+# ==========================================
+# 4. Private/Reference Documents
+# ==========================================
+# [ADD HERE] -> Put the exact names of your two PDFs below this line:
+RISCV_CARD.pdf
+riscv-unprivileged.pdf
+
+# ==========================================
+# 5. OS & IDE Specifics
+# ==========================================
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# ==========================================
+# 6. Docker Artifacts
+# ==========================================
+.docker-build-lock
