@@ -2,11 +2,13 @@ from typing import List, Dict, Tuple
 import struct
 from .lexer import Token 
 from .rv32i_isa import RV32I_ISA
+from .pseudo import PseudoExpander
 
 class Assembler:
     def __init__(self, token_stream: List[Token], isa: RV32I_ISA):
         self.tokens: List[Token] = token_stream
         self.isa: RV32I_ISA = isa
+        self.pseudo = PseudoExpander()
         self.symbol_table: Dict[str, int] = {}
 
     def _group_by_line(self) -> List[List[Token]]:
@@ -55,6 +57,10 @@ class Assembler:
         elif main_token in [".section", ".global", ".text", ".data"]:
             return 0
         elif not main_token.startswith('.'):
+            # Check if it is a pseudo instruction
+            expanded = self.pseudo.expand(content)
+            if expanded:
+                return len(expanded) * 4
             return 4
         return 0
 
@@ -95,12 +101,19 @@ class Assembler:
             main_token = content[0].value.lower()
 
             if not main_token.startswith('.'):
-                machine_code = self.isa.encode(content, pc, self.symbol_table)
-                binary_output.extend(struct.pack('<I', machine_code))
-                pc += 4
+                # Check for pseudo instruction or standard instruction
+                expanded = self.pseudo.expand(content)
+                instructions = expanded if expanded else [content]
+                
+                for instr in instructions:
+                    machine_code = self.isa.encode(instr, pc, self.symbol_table)
+                    binary_output.extend(struct.pack('<I', machine_code))
+                    pc += 4
 
             elif main_token == ".word":
                 val = int(content[1].value, 0)
+                # Handle signed 32-bit integers by masking
+                if val < 0: val = (1 << 32) + val
                 binary_output.extend(struct.pack('<I', val))
                 pc += 4
 
