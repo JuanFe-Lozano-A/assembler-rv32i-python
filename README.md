@@ -28,10 +28,15 @@ The assembler consists of several key components:
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.14.3 or higher
 - pip (Python package manager)
+- `binutils-riscv-none-elf` (for local development)
 
 ### Local Installation
+
+This project requires Python 3.14.3. The `.python-version` file is provided for use with tools like `pyenv`.
+
+It also requires `binutils-riscv-none-elf` to be installed and in your `PATH`. This provides the necessary tools for working with RISC-V binaries. Please install it using your system's package manager.
 
 1. **Clone the repository**:
    ```bash
