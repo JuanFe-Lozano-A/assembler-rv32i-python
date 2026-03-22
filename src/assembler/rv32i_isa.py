@@ -94,11 +94,26 @@ class RV32I_ISA:
             raise ValueError(f"Invalid register: {reg_name}")
         return val
 
-    def _parse_mem(self, arg):
-        """Parses 'offset(base)' or just returns (0, base) or (imm, zero)."""
+    def _resolve_imm(self, arg: str, pc: int, symbol_table: dict) -> int:
+        """Resolves immediate values, including 'label[31:12]' syntax for auipc/addi."""
+        if arg.endswith('[31:12]'):
+            label = arg[:-7]
+            if label not in symbol_table: raise ValueError(f"Label {label} not found")
+            offset = symbol_table[label] - pc
+            return (offset + 0x800) >> 12
+        elif arg.endswith('[11:0]'):
+            label = arg[:-6]
+            if label not in symbol_table: raise ValueError(f"Label {label} not found")
+            # Lower part is relative to the AUIPC (pc - 4)
+            offset = symbol_table[label] - (pc - 4)
+            return offset & 0xFFF
+        return int(arg, 0)
+
+    def _parse_mem(self, arg, pc, symbol_table):
+        """Parses 'offset(base)'."""
         if '(' in arg and arg.endswith(')'):
             offset_str, base_str = arg[:-1].split('(')
-            return int(offset_str, 0), self.get_reg(base_str)
+            return self._resolve_imm(offset_str, pc, symbol_table), self.get_reg(base_str)
         raise ValueError(f"Expected memory address 'offset(base)', got {arg}")
 
     def encode(self, tokens: list, current_pc: int, symbol_table: dict) -> int:
@@ -113,16 +128,16 @@ class RV32I_ISA:
         if fmt == "R":
             return self._pack_r(opcode, f3, f7, args)
         elif fmt == "I":
-            return self._pack_i(opcode, f3, f7, args)
+            return self._pack_i(opcode, f3, f7, args, current_pc, symbol_table)
         elif fmt == "S":
-            return self._pack_s(opcode, f3, args)
+            return self._pack_s(opcode, f3, args, current_pc, symbol_table)
         elif fmt == "B":
             target_addr = symbol_table.get(args[-1])
             if target_addr is None: raise ValueError(f"Label {args[-1]} not found")
             offset = target_addr - current_pc
             return self._pack_b(opcode, f3, args, offset)
         elif fmt == "U":
-            return self._pack_u(opcode, args)
+            return self._pack_u(opcode, args, current_pc, symbol_table)
         elif fmt == "J":
             target_addr = symbol_table.get(args[-1])
             if target_addr is None: raise ValueError(f"Label {args[-1]} not found")
@@ -137,7 +152,7 @@ class RV32I_ISA:
         rs2 = self.get_reg(args[2])
         return (f7 << 25) | (rs2 << 20) | (rs1 << 15) | (f3 << 12) | (rd << 7) | opcode
 
-    def _pack_i(self, opcode, f3, f7, args):
+    def _pack_i(self, opcode, f3, f7, args, pc, symbol_table):
         # Formats: "addi rd, rs1, imm", "lw rd, off(rs1)", or "ecall" (no args)
         if not args: # ecall, ebreak
             return (0 << 20) | (0 << 15) | (f3 << 12) | (0 << 7) | opcode
@@ -146,10 +161,10 @@ class RV32I_ISA:
         
         # Load instructions or explicit offset syntax
         if len(args) == 2: 
-            imm, rs1 = self._parse_mem(args[1])
+            imm, rs1 = self._parse_mem(args[1], pc, symbol_table)
         else: # Arithmetic: addi rd, rs1, imm
             rs1 = self.get_reg(args[1])
-            imm = int(args[2], 0)
+            imm = self._resolve_imm(args[2], pc, symbol_table)
 
         # Special handling for shifts (slli, etc) where f7 holds the top bits
         if f7 is not None:
@@ -157,10 +172,10 @@ class RV32I_ISA:
         
         return ((imm & 0xFFF) << 20) | (rs1 << 15) | (f3 << 12) | (rd << 7) | opcode
 
-    def _pack_s(self, opcode, f3, args):
+    def _pack_s(self, opcode, f3, args, pc, symbol_table):
         # sw rs2, offset(rs1)
         rs2 = self.get_reg(args[0])
-        imm, rs1 = self._parse_mem(args[1])
+        imm, rs1 = self._parse_mem(args[1], pc, symbol_table)
         
         imm11_5 = (imm >> 5) & 0x7F
         imm4_0 = imm & 0x1F
@@ -180,10 +195,10 @@ class RV32I_ISA:
         encoded_imm = (imm_12 << 31) | (imm_10_5 << 25) | (imm_4_1 << 8) | (imm_11 << 7)
         return encoded_imm | (rs2 << 20) | (rs1 << 15) | (f3 << 12) | opcode
 
-    def _pack_u(self, opcode, args):
+    def _pack_u(self, opcode, args, pc, symbol_table):
         # lui rd, imm
         rd = self.get_reg(args[0])
-        imm = int(args[1], 0)
+        imm = self._resolve_imm(args[1], pc, symbol_table)
         return ((imm & 0xFFFFF) << 12) | (rd << 7) | opcode
 
     def _pack_j(self, opcode, args, offset):
