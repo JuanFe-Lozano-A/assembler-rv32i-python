@@ -38,7 +38,7 @@ class PseudoExpander:
 
         elif mnemonic == 'ret':
             # ret -> jalr x0, 0(ra)
-            return [[t("jalr"), t("x0"), t("0(ra)")]]
+            return [[t("jalr"), t("x0"), t_offset(0, t("ra"))]]
 
         elif mnemonic == 'jr':
             # jr rs -> jalr x0, 0(rs)
@@ -136,5 +136,49 @@ class PseudoExpander:
                     upper = (val - lower) >> 12
                     
                     return [[t("lui"), rd, t(upper)], [t("addi"), rd, rd, t(lower)]]
-
+        
+        elif mnemonic == 'la':
+            # la rd, symbol -> auipc rd, symbol[31:12]; addi rd, rd, symbol[11:0]
+            if len(args) == 2:
+                return [
+                    [t("auipc"), args[0], t(f"{args[1].value}[31:12]")],
+                    [t("addi"), args[0], args[0], t(f"{args[1].value}[11:0]")]
+                ]
+        
+        elif mnemonic in ('lb', 'lh', 'lw'):
+            # l{b|h|w} rd, symbol -> auipc rd, symbol[31:12]; l* rd, symbol[11:0](rd)
+            if len(args) == 2:
+                return [
+                    [t("auipc"), args[0], t(f"{args[1].value}[31:12]")],
+                    [t(mnemonic), args[0], t(f"{args[1].value}[11:0]({args[0].value})")]
+                ]
+        
+        elif mnemonic in ('sb', 'sh', 'sw'):
+            # s{b|h|w} rs, symbol, rt -> auipc rt, symbol[31:12]; s* rs, symbol[11:0](rt)
+            if len(args) == 3:
+                return [
+                    [t("auipc"), args[2], t(f"{args[1].value}[31:12]")],
+                    [t(mnemonic), args[0], t(f"{args[1].value}[11:0]({args[2].value})")]
+                ]
+        
+        elif mnemonic == 'call':
+            # call offset -> auipc x1, offset[31:12]; jalr x1, offset[11:0](x1)
+            if len(args) == 1:
+                return [
+                    [t("auipc"), t("x1"), t(f"{args[0].value}[31:12]")],
+                    [t("jalr"), t("x1"), t(f"{args[0].value}[11:0](x1)")]
+                ]
+        
+        elif mnemonic == 'tail':
+            # tail offset -> auipc x6, offset[31:12]; jalr x0, offset[11:0](x6)
+            if len(args) == 1:
+                return [
+                    [t("auipc"), t("x6"), t(f"{args[0].value}[31:12]")],
+                    [t("jalr"), t("x0"), t(f"{args[0].value}[11:0](x6)")]
+                ]
+        
+        elif mnemonic == 'fence':
+            # fence -> fence iorw, iorw
+            return [[t("fence"), t("iorw"), t("iorw")]]
+        
         return None
