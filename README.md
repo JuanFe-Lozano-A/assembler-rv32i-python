@@ -11,7 +11,7 @@ This project is a complete assembler for the RISC-V RV32I instruction set. It ta
 - **Full RV32I ISA Support**: Encodes all base integer instructions (R, I, S, B, U, J formats)
 - **Pseudo-Instruction Expansion**: Automatically expands common pseudo-instructions like `mv`, `li`, `la`, `call`, `tail`, and conditional branches
 - **Symbol Resolution**: Two-pass assembly with label resolution and symbol table management
-- **Directive Support**: Handles directives like `.word`, `.byte`, `.global`, `.text`, and `.section`
+- **Directive Support**: Handles directives like `.word`, `.byte`, `.half`, `.string`, `.asciz`, `.ascii`, `.space`, `.align`, `.global`, `.text`, and `.section`
 - **Flexible Syntax**: Supports both x-register names (x0-x31) and ABI names (ra, sp, gp, etc.)
 - **Error Handling**: Provides meaningful error messages for invalid instructions and unresolved symbols
 
@@ -104,11 +104,12 @@ python3 src/main.py hello.s -o hello.bin
 
 ## Testing
 
-The project includes a comprehensive test suite with 99 tests covering:
+The project includes a comprehensive test suite with 108 tests covering:
 - Lexical analysis
 - Instruction encoding for all instruction types
 - Pseudo-instruction expansion
 - Symbol resolution
+- Assembler directives
 - Integration tests for complete assembly
 
 ### Running Tests
@@ -123,12 +124,13 @@ python3 -m pytest tests/ -v
 **Test Coverage**:
 - `tests/test_lexer.py`: 15 tests for tokenization
 - `tests/test_isa.py`: 25 tests for ISA encoding
-- `tests/test_pseudo.py`: 30 tests for pseudo-instruction expansion
-- `tests/test_assembler.py`: 29 integration tests
+- `tests/test_pseudo.py`: 31 tests for pseudo-instruction expansion
+- `tests/test_assembler.py`: 28 integration tests
+- `tests/test_directives.py`: 9 tests for assembler directives
 
 All tests should pass:
 ```
-============================== 99 passed in 0.04s ==============================
+============================== 108 passed in 0.05s ==============================
 ```
 
 ## Requirements
@@ -249,7 +251,8 @@ assembler-rv32i-python/
 │   ├── test_lexer.py           # Lexer tests
 │   ├── test_isa.py             # ISA encoding tests
 │   ├── test_pseudo.py          # Pseudo-instruction tests
-│   └── test_assembler.py       # Integration tests
+│   ├── test_assembler.py       # Integration tests
+│   └── test_directives.py      # Directive tests
 ├── dockerfile                   # Docker container definition
 ├── docker-compose.yaml         # Docker Compose configuration
 ├── requirements.txt            # Core dependencies
