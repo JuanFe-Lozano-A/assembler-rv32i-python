@@ -267,10 +267,12 @@ assembler-rv32i-python/
 
 ## Future Enhancements
 
-- UI-based assembler interface
-- Disassembler functionality (binary to assembly)
-- Debugging features (breakpoints, register inspection)
-- Extended instruction set support (RV64I, extensions)
+- **UI-Based Assembler Interface**: Develop a simple web-based UI (e.g., using Flask or FastAPI with a simple frontend) to allow users to write and assemble code without using the CLI.
+- **Disassembler Functionality**: Implement a disassembler to convert machine code back into human-readable assembly, aiding in debugging and analysis.
+- **Debugging Features**: Add features to the assembler or a companion tool to support debugging, such as setting breakpoints, inspecting registers, and stepping through code.
+- **Extended Instruction Set Support**: Expand the assembler to support other RISC-V extensions, such as the 64-bit integer instruction set (RV64I) or floating-point extensions (F, D).
+- **Macro Support**: Implement support for user-defined macros to simplify complex or repetitive code patterns.
+- **Code validation and linting**: Add more robust validation and linting of the assembly code to catch common errors and enforce coding standards.
 
 ## License
 
