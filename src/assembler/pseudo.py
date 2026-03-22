@@ -147,7 +147,8 @@ class PseudoExpander:
         
         elif mnemonic in ('lb', 'lh', 'lw'):
             # l{b|h|w} rd, symbol -> auipc rd, symbol[31:12]; l* rd, symbol[11:0](rd)
-            if len(args) == 2:
+            # Only expand if second arg is a symbol (no parentheses), not a memory address
+            if len(args) == 2 and '(' not in args[1].value:
                 return [
                     [t("auipc"), args[0], t(f"{args[1].value}[31:12]")],
                     [t(mnemonic), args[0], t(f"{args[1].value}[11:0]({args[0].value})")]
@@ -155,7 +156,8 @@ class PseudoExpander:
         
         elif mnemonic in ('sb', 'sh', 'sw'):
             # s{b|h|w} rs, symbol, rt -> auipc rt, symbol[31:12]; s* rs, symbol[11:0](rt)
-            if len(args) == 3:
+            # Only expand if second arg is a symbol (no parentheses), not a memory address
+            if len(args) == 3 and '(' not in args[1].value:
                 return [
                     [t("auipc"), args[2], t(f"{args[1].value}[31:12]")],
                     [t(mnemonic), args[0], t(f"{args[1].value}[11:0]({args[2].value})")]

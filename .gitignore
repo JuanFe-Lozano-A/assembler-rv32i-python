@@ -12,6 +12,7 @@ __pycache__/
 # ==========================================
 venv/
 .venv/
+.venv_*/
 env/
 ENV/
 
@@ -24,6 +25,13 @@ ENV/
 *.elf
 *.o
 *.out
+
+# ==========================================
+# 4. Assembly Test Files (Temporary)
+# ==========================================
+testing_assembler.asm
+test.bin
+test_*.asm
 
 # ==========================================
 # 4. Private/Reference Documents
