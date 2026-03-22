@@ -38,6 +38,26 @@ class Lexer:
 
     def _split_line(self, line):
         """
-        Helper to handle commas and spaces as delimiters.
+        Helper to handle commas and spaces as delimiters, respecting quotes.
         """
-        return line.replace(',', ' ').split()
+        tokens = []
+        current_token = []
+        in_quote = False
+        
+        for char in line:
+            if char == '"':
+                in_quote = not in_quote
+                current_token.append(char)
+            elif in_quote:
+                current_token.append(char)
+            elif char in ', \t\r\n':
+                if current_token:
+                    tokens.append("".join(current_token))
+                    current_token = []
+            else:
+                current_token.append(char)
+        
+        if current_token:
+            tokens.append("".join(current_token))
+            
+        return tokens

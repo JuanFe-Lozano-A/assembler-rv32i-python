@@ -49,7 +49,9 @@ class RV32I_ISA:
             "auipc": (0x17, None, None, "U"),
             # I environment type formats
             "ecall": (0x73, 0x0, 0x0, "I"),
-            "ebrake": (0x73, 0x0, 0x1, "I")
+            "ebreak": (0x73, 0x0, 0x1, "I"),
+            # Fence (Custom handling)
+            "fence": (0x0F, 0x0, None, "FENCE")
         }
 
         self.REGISTERS = {
@@ -143,6 +145,8 @@ class RV32I_ISA:
             if target_addr is None: raise ValueError(f"Label {args[-1]} not found")
             offset = target_addr - current_pc
             return self._pack_j(opcode, args, offset)
+        elif fmt == "FENCE":
+            return self._pack_fence(opcode, args)
         return 0
 
     def _pack_r(self, opcode, f3, f7, args):
@@ -213,3 +217,21 @@ class RV32I_ISA:
         
         encoded_imm = (imm_20 << 31) | (imm_10_1 << 21) | (imm_11 << 20) | (imm_19_12 << 12)
         return encoded_imm | (rd << 7) | opcode
+
+    def _pack_fence(self, opcode, args):
+        # fence pred, succ
+        # args usually ['iorw', 'iorw'] from pseudo expander
+        # or explicit immediates. For robustness, we handle the string flags.
+        def parse_flags(flags_str):
+            val = 0
+            if 'i' in flags_str: val |= 8
+            if 'o' in flags_str: val |= 4
+            if 'r' in flags_str: val |= 2
+            if 'w' in flags_str: val |= 1
+            return val
+
+        pred = parse_flags(args[0]) if len(args) > 0 else 0xF
+        succ = parse_flags(args[1]) if len(args) > 1 else 0xF
+        
+        # Format: fm(31:28)|pred(27:24)|succ(23:20)|rs1(0)|funct3(0)|rd(0)|opcode
+        return (0 << 28) | (pred << 24) | (succ << 20) | (0 << 15) | (0 << 12) | (0 << 7) | opcode
