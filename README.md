@@ -75,6 +75,8 @@ python3 src/main.py <input_file> -o <output_file>
 **Options**:
 - `<input_file>`: Path to the input assembly file (`.s` or `.asm`)
 - `-o, --output`: Path to the output binary file (default: `out.bin`)
+- `--h`: Print output in hexadecimal
+- `--b`: Print output in binary
 - `--print-symbols`: Print the symbol table after assembly
 
 **Example**:
