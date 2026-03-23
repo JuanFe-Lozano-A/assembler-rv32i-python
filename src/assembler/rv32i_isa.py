@@ -127,6 +127,16 @@ class RV32I_ISA:
 
         args = [t.value for t in tokens[1:]]
 
+        def get_offset(arg, pc, symbols):
+            try:
+                # If it's a number like -4 or 20, return it directly
+                return int(arg, 0)
+            except ValueError:
+                # If it's a label, calculate the relative distance
+                if arg not in symbols:
+                    raise ValueError(f"Label or Immediate '{arg}' not found")
+                return symbols[arg] - pc
+
         if fmt == "R":
             return self._pack_r(opcode, f3, f7, args)
         elif fmt == "I":
@@ -134,16 +144,14 @@ class RV32I_ISA:
         elif fmt == "S":
             return self._pack_s(opcode, f3, args, current_pc, symbol_table)
         elif fmt == "B":
-            target_addr = symbol_table.get(args[-1])
-            if target_addr is None: raise ValueError(f"Label {args[-1]} not found")
-            offset = target_addr - current_pc
+            # Use the new helper instead of .get()
+            offset = get_offset(args[-1], current_pc, symbol_table)
             return self._pack_b(opcode, f3, args, offset)
         elif fmt == "U":
             return self._pack_u(opcode, args, current_pc, symbol_table)
         elif fmt == "J":
-            target_addr = symbol_table.get(args[-1])
-            if target_addr is None: raise ValueError(f"Label {args[-1]} not found")
-            offset = target_addr - current_pc
+            # Use the new helper instead of .get()
+            offset = get_offset(args[-1], current_pc, symbol_table)
             return self._pack_j(opcode, args, offset)
         elif fmt == "FENCE":
             return self._pack_fence(opcode, args)
