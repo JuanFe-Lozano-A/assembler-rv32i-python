@@ -14,9 +14,16 @@ def main():
     parser = argparse.ArgumentParser(description="RISC-V RV32I Assembler")
     parser.add_argument('input_file', help="Path to the input assembly (.asm / .s) file")
     parser.add_argument('-o', '--output', help="Path to the output binary file", default="out.bin")
+    parser.add_argument('--h', action='store_true', help="Print output in hexadecimal")
+    parser.add_argument('--b', action='store_true', help="Print output in binary")
     parser.add_argument('--print-symbols', action='store_true', help="Print the symbol table after assembly")
 
     args = parser.parse_args()
+
+    # Minimal fix: prevent conflicting flags
+    if args.h and args.b:
+        print("Error: Use only one of --h or --b", file=sys.stderr)
+        sys.exit(1)
 
     try:
         # 1. Read Source
@@ -43,7 +50,26 @@ def main():
         # 5. Second Pass (Binary Generation)
         binary = asm.second_pass()
 
-        # 6. Write Output
+        # 6. Optional formatted output (does NOT affect file writing)
+        if args.h:
+            print("\n--- HEX OUTPUT ---")
+            for i in range(0, len(binary), 4):
+                word = binary[i:i+4]
+                if len(word) < 4:
+                    continue
+                print(f"0x{int.from_bytes(word, byteorder='little'):08x}")
+            print("------------------")
+
+        if args.b:
+            print("\n--- BINARY OUTPUT ---")
+            for i in range(0, len(binary), 4):
+                word = binary[i:i+4]
+                if len(word) < 4:
+                    continue
+                print(f"{int.from_bytes(word, byteorder='little'):032b}")
+            print("---------------------")
+
+        # 7. Write Output
         with open(args.output, 'wb') as f:
             f.write(binary)
         print(f"Assembly successful! Output written to {args.output} ({len(binary)} bytes)")
