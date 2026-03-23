@@ -158,8 +158,9 @@ class RV32I_ISA:
 
     def _pack_i(self, opcode, f3, f7, args, pc, symbol_table):
         # Formats: "addi rd, rs1, imm", "lw rd, off(rs1)", or "ecall" (no args)
-        if not args: # ecall, ebreak
-            return (0 << 20) | (0 << 15) | (f3 << 12) | (0 << 7) | opcode
+        if not args:  # ecall, ebreak
+            imm = f7 if f7 is not None else 0
+            return (imm << 20) | (0 << 15) | (f3 << 12) | (0 << 7) | opcode
 
         rd = self.get_reg(args[0])
         
@@ -189,13 +190,13 @@ class RV32I_ISA:
         # beq rs1, rs2, label
         rs1 = self.get_reg(args[0])
         rs2 = self.get_reg(args[1])
-        
-        imm = offset >> 1 # B-type ignores bit 0
-        imm_12 = (imm >> 11) & 1
-        imm_10_5 = (imm >> 4) & 0x3F
-        imm_4_1 = imm & 0xF
-        imm_11 = (imm >> 10) & 1
-        
+
+        imm = offset
+        imm_12   = (imm >> 12) & 0x1
+        imm_10_5 = (imm >> 5)  & 0x3F
+        imm_4_1  = (imm >> 1)  & 0xF
+        imm_11   = (imm >> 11) & 0x1
+
         encoded_imm = (imm_12 << 31) | (imm_10_5 << 25) | (imm_4_1 << 8) | (imm_11 << 7)
         return encoded_imm | (rs2 << 20) | (rs1 << 15) | (f3 << 12) | opcode
 
