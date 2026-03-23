@@ -144,13 +144,11 @@ class RV32I_ISA:
         elif fmt == "S":
             return self._pack_s(opcode, f3, args, current_pc, symbol_table)
         elif fmt == "B":
-            # Use the new helper instead of .get()
             offset = get_offset(args[-1], current_pc, symbol_table)
             return self._pack_b(opcode, f3, args, offset)
         elif fmt == "U":
             return self._pack_u(opcode, args, current_pc, symbol_table)
         elif fmt == "J":
-            # Use the new helper instead of .get()
             offset = get_offset(args[-1], current_pc, symbol_table)
             return self._pack_j(opcode, args, offset)
         elif fmt == "FENCE":

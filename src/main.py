@@ -50,24 +50,26 @@ def main():
         # 5. Second Pass (Binary Generation)
         binary = asm.second_pass()
 
-        # 6. Optional formatted output (does NOT affect file writing)
+        # 6. Formatted Output (Memory Dumps)
         if args.h:
-            print("\n--- HEX OUTPUT ---")
-            for i in range(0, len(binary), 4):
-                word = binary[i:i+4]
-                if len(word) < 4:
-                    continue
-                print(f"0x{int.from_bytes(word, byteorder='little'):08x}")
-            print("------------------")
+            print("\n--- ASSEMBLED MEMORY DUMP (HEX) ---")
+            # Step by 16 bytes for a standard hexdump look
+            for i in range(0, len(binary), 16):
+                chunk = binary[i:i+16]
+                # Format each byte as a 2-char hex string
+                hex_str = " ".join(f"{b:02x}" for b in chunk)
+                print(f"0x{i:08x} |  {hex_str}")
+            print("-----------------------------------")
 
         if args.b:
-            print("\n--- BINARY OUTPUT ---")
+            print("\n--- ASSEMBLED MEMORY DUMP (BIN) ---")
+            # Step by 4 bytes (1 word) to keep lines readable, 
+            # but process them byte-by-byte so nothing gets reversed or dropped!
             for i in range(0, len(binary), 4):
-                word = binary[i:i+4]
-                if len(word) < 4:
-                    continue
-                print(f"{int.from_bytes(word, byteorder='little'):032b}")
-            print("---------------------")
+                chunk = binary[i:i+4]
+                bin_str = " ".join(f"{b:08b}" for b in chunk)
+                print(f"0x{i:08x} |  {bin_str}")
+            print("-----------------------------------")
 
         # 7. Write Output
         with open(args.output, 'wb') as f:
