@@ -5,7 +5,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
-.python-version
 
 # ==========================================
 # 2. Virtual Environments
@@ -29,7 +28,6 @@ ENV/
 # ==========================================
 # 4. Assembly Test Files (Temporary)
 # ==========================================
-testing_assembler.asm
 test.bin
 test_*.asm
 

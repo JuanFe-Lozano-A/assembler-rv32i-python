@@ -1,13 +1,12 @@
 version: '3.8'
 
 services:
-  riscv-assembler:
-    build: .
+  riscv_dev:
     container_name: riscv_dev
+    build: .
     working_dir: /app
     volumes:
       - .:/app
-    stdin_open: true
-    tty: true
     environment:
       - PYTHONDONTWRITEBYTECODE=1
+    command: tail -f /dev/null

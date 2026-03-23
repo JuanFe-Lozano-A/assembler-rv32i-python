@@ -28,13 +28,13 @@ The assembler consists of several key components:
 
 ### Prerequisites
 
-- Python 3.14.3 or higher
+- Python 3.13.1 or higher
 - pip (Python package manager)
 - `binutils-riscv-none-elf` (for local development)
 
 ### Local Installation
 
-This project requires Python 3.14.3. The `.python-version` file is provided for use with tools like `pyenv`.
+This project requires Python 3.13.1. The `.python-version` file is provided for use with tools like `pyenv`.
 
 It also requires `binutils-riscv-none-elf` to be installed and in your `PATH`. This provides the necessary tools for working with RISC-V binaries. Please install it using your system's package manager.
 
@@ -196,8 +196,8 @@ docker-compose exec riscv_dev python3 -m pytest tests/ -v
 
 ### Dockerfile Details
 
-The `dockerfile` uses Alpine Linux with:
-- Python 3.x
+The `Dockerfile` uses a Python slim image (Debian-based) with:
+- Python 3.13.1
 - RISC-V binary utilities
 - All project dependencies (core and development)
 
